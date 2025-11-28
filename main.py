@@ -1,80 +1,72 @@
 from queue_manager import QueueManager, QueueEmptyException
-from utils import save_queue, load_queue
+from utils import save_queue, load_queue, queues_directory_exists, save_all_queues, show_all_queues, get_command, remove_from_index, print_queue
 
-def main():
-    queues = {"default": QueueManager()}  # all queues stored here
-    current = "default"                   # active queue name
+def main():  
+      
+    queues_directory_exists()
 
     print("Welcome to Queue Manager!")
-    print("Commands: new <name>, use <name>, queues, enqueue <item>, dequeue, view, save, load, exit")
+    print("Commands: new <name>, add <name> <item>, save <name>, save-all, load <name>, show-all, show-queue <name>, delete<name>, exit")
 
+    queues = {}  # A dictionary: name → QueueManager()
+    
     while True:
-        command = input(f"[{current}] > ").strip()
+        command = get_command()
+        match command[0].strip().lower():
+            case "new":
+                try:
+                    queues[command[1]] = QueueManager(command[1])
+                    print(f"The name of the new queue: {queues[command[1]].name}")
+                except IndexError:
+                    print(f"The correct form of the command is: new <name of the new queue>\n")
+                    continue
+                print(f"Queue '{command[1]}' created.")
 
-        # Exit program
-        if command == "exit":
-            print("Goodbye!")
-            break
+            case "add":
+                if command[1] not in queues:
+                    print("Queue does not exist.")
+                    continue
+                queues[command[1]].enqueue(command[2])
 
-        # Create a new queue
-        elif command.startswith("new "):
-            name = command.split(" ", 1)[1].strip()
-            if name in queues:
-                print(f"Queue '{name}' already exists.")
-            else:
-                queues[name] = QueueManager()
-                print(f"Queue '{name}' created.")
+            case "save":
+                if command[1] == 'all':
+                    save_all_queues(queues)
+                    continue
+                elif command[1] not in queues:
+                    print("Queue does not exist.")
+                    continue
+                save_queue(queues[command[1]], command[1])
 
-        # Switch active queue
-        elif command.startswith("use "):
-            name = command.split(" ", 1)[1].strip()
-            if name not in queues:
-                print(f"Queue '{name}' does not exist.")
-            else:
-                current = name
-                print(f"Switched to queue '{name}'.")
+            case "save-all":
+                save_all_queues(queues)
 
-        # List available queues
-        elif command == "queues":
-            print("Available queues:")
-            for name in queues:
-                marker = "(active)" if name == current else ""
-                print(f" - {name} {marker}")
+            case "load":
+                 temp_queue = load_queue(command[1])
+                 if temp_queue is not None:
+                    queues[command[1]] = QueueManager(command[1])
+                    queues[command[1]].set_queue(temp_queue)
+                    print(f"Queue '{command[1]}' loaded successfully.")
 
-        # Enqueue
-        elif command.startswith("enqueue "):
-            item = command.split(" ", 1)[1].strip()
-            queues[current].enqueue(item)
+            case "show-all":
+                show_all_queues()
+            
+            case "show-queue":
+                queues[command[1]].view()
+            
+            case "delete":
+                if queues.pop(command[1], "Not found") != "Not found":
+                    remove_from_index(command[1])
+                    print(f"Queue '{command[1]}' delted successfully.")
+                else:
+                    print(f"Could not delete the {command[1]} queue")
 
-        # Dequeue
-        elif command == "dequeue":
-            try:
-                queues[current].dequeue()
-            except QueueEmptyException as e:
-                print(e)
-
-        # View queue
-        elif command == "view":
-            queues[current].view()
-
-        # Save active queue
-        elif command == "save":
-            save_queue(queues[current].queue, filename=f"{current}.json")
-            print(f"Queue '{current}' saved.")
-
-        elif command == "save_all":
-            for name, q in queues.items():
-                save_queue(q.queue, filename=f"{name}.json")
-            print("All queues saved.")
-
-        # Load active queue
-        elif command == "load":
-            queues[current].queue = load_queue(filename=f"{current}.json")
-            print(f"Queue '{current}' loaded.")
-
-        # Unknown command
-        else:
-            print("Unknown command.")
+            case "exit":
+                print("Goodbye!\n")
+                break
+            case _:  # Default case
+                print(f"Unknown command: {" ".join(command)}")
+                print("Commands: new <name>, add <name> <item>, save <name>, save-all, load <name>, show-all, show-queue <name>, delete<name>, exit")
 
 if __name__ == "__main__":
     main()
+
