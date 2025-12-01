@@ -1,13 +1,14 @@
-from queue_manager import QueueManager, QueueEmptyException
-from utils import save_queue, load_queue, queues_directory_exists, save_all_queues, show_all_queues, get_command, remove_from_index, print_queue
+from queue_manager import QueueManager
+from utils import *
+from logger import clear_logs, set_log_level
+from autocomplete import enable_autocomplete
 
 def main():  
-      
+
+    enable_autocomplete()
     queues_directory_exists()
-
     print("Welcome to Queue Manager!")
-    print("Commands: new <name>, add <name> <item>, save <name>, save-all, load <name>, show-all, show-queue <name>, delete<name>, exit")
-
+    print_commands()
     queues = {}  # A dictionary: name → QueueManager()
     
     while True:
@@ -29,10 +30,7 @@ def main():
                 queues[command[1]].enqueue(command[2])
 
             case "save":
-                if command[1] == 'all':
-                    save_all_queues(queues)
-                    continue
-                elif command[1] not in queues:
+                if command[1] not in queues:
                     print("Queue does not exist.")
                     continue
                 save_queue(queues[command[1]], command[1])
@@ -45,27 +43,39 @@ def main():
                  if temp_queue is not None:
                     queues[command[1]] = QueueManager(command[1])
                     queues[command[1]].set_queue(temp_queue)
+                    add_to_index(command[1])
                     print(f"Queue '{command[1]}' loaded successfully.")
 
             case "show-all":
                 show_all_queues()
             
             case "show-queue":
+                if command[1] not in queues:
+                    print("Queue not found.")
+                    continue
                 queues[command[1]].view()
             
+            case "set-log-level":
+                set_log_level(command[1])
+
             case "delete":
-                if queues.pop(command[1], "Not found") != "Not found":
+                if command[1] in queues:
+                    queues.pop(command[1])
+                    delete_queue_file(command[1])
                     remove_from_index(command[1])
-                    print(f"Queue '{command[1]}' delted successfully.")
+                    print(f"Queue '{command[1]}' deleted successfully.")
                 else:
-                    print(f"Could not delete the {command[1]} queue")
+                    print(f"Queue '{command[1]}' not found.")
+            
+            case "clear-logs":
+                clear_logs()
 
             case "exit":
                 print("Goodbye!\n")
                 break
             case _:  # Default case
-                print(f"Unknown command: {" ".join(command)}")
-                print("Commands: new <name>, add <name> <item>, save <name>, save-all, load <name>, show-all, show-queue <name>, delete<name>, exit")
+                print(f"Unknown command: {''.join(command[1:])}")
+                print_commands()
 
 if __name__ == "__main__":
     main()
