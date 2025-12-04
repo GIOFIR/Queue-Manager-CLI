@@ -1,7 +1,7 @@
-from queue_manager import QueueManager
-from utils import *
-from logger import clear_logs, set_log_level
-from autocomplete import enable_autocomplete
+from queue_manager.queue_manager import QueueManager
+from queue_manager.utils import *
+from queue_manager.logger import clear_logs, set_log_level
+from queue_manager.autocomplete import enable_autocomplete
 
 def main():  
 
@@ -28,6 +28,18 @@ def main():
                     print("Queue does not exist.")
                     continue
                 queues[command[1]].enqueue(command[2])
+
+            case "pop-first":
+                if command[1] not in queues:
+                    print("Queue does not exist.")
+                    continue
+                queues[command[1]].dequeue()
+
+            case "pop-item":
+                if command[1] not in queues:
+                    print("Queue does not exist.")
+                    continue
+                queues[command[1]].dequeue_item(command[2])
 
             case "save":
                 if command[1] not in queues:
@@ -74,7 +86,7 @@ def main():
                 print("Goodbye!\n")
                 break
             case _:  # Default case
-                print(f"Unknown command: {''.join(command[1:])}")
+                print(f"Unknown command: {' '.join(command[1:])}")
                 print_commands()
 
 if __name__ == "__main__":

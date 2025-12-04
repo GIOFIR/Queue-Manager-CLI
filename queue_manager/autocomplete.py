@@ -3,6 +3,8 @@ import readline
 COMMANDS = [
     "new",
     "add",
+    "pop-first",
+    "pop-item",
     "save",
     "save-all",
     "load",

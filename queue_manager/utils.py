@@ -1,8 +1,8 @@
 import json
 import os
 from collections import deque
-from logger import logger
-from queue_manager_exceptions import QueueStorageInitException
+from queue_manager.logger import logger
+from queue_manager.queue_manager_exceptions import QueueStorageInitException
 
 # ----------------------------
 # CONSTANTS
@@ -19,6 +19,8 @@ def print_commands():
     print("Commands:")
     print("  new <name>            - Create a new queue with the given name")
     print("  add <name> <item>     - Add an item to the specified queue")
+    print("  pop-first <name>      - remove the first item from specified queue")
+    print("  pop-item <name> <item>- remove an item from specified queue")
     print("  save <name>           - Save the specified queue to a file")
     print("  save-all              - Save all queues")
     print("  load <name>           - Load a queue from a file")
@@ -44,19 +46,22 @@ def get_command():
     parts = command.split()
     cmd = parts[0]
 
+    # === Commands that expect exactly 2 argument ===
+    two_arg_cmds = {"add", "pop-item"}
     # === Commands that expect exactly 1 argument ===
-    one_arg_cmds = {"new", "save", "load", "show-queue", "set-log-level", "delete"}
+    one_arg_cmds = {"new", "save", "load", "show-queue", "pop-first", "set-log-level", "delete"}
     # === Commands that expect no arguments ===
     zero_arg_cmds = {"save-all", "show-all", "clear-logs", "exit"}
 
     # Special case: add <name> <item...>
-    if cmd == "add":
+    if cmd in two_arg_cmds:
         if len(parts) < 3:
             return ["===", "Usage: add <name> <item>"]
         # allow multi-word item
+        command = parts[0]
         name = parts[1]
         item = " ".join(parts[2:])
-        return ["add", name, item]
+        return [command, name, item]
 
     # Handle commands that require exactly one argument
     if cmd in one_arg_cmds:
@@ -73,14 +78,6 @@ def get_command():
     # Unknown command
     return ["==="] + parts
 
-# def get_command():
-#     """receive a command from the user and return it as a list"""
-#     command = input("\nCommand: ")
-#     logger.info(f"Received command: {command}")
-#     parts = command.split()
-#     if len(parts) >= 3 and parts[0] == "add":
-#         return [parts[0], parts[1], " ".join(parts[2:])]
-#     return parts
 
 def queues_directory_exists():
     # Ensure the queues directory exists

@@ -1,0 +1,6 @@
+under root folder:
+1) open terminal
+2) run one of the following orders:
+	pytest
+	pytest -v    === To see detailed output
+	pytest tests/test_queue_manager.py  ==== to run a single file

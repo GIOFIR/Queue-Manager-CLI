@@ -1,5 +1,5 @@
 from collections import deque
-from queue_manager_exceptions import QueueEmptyException
+from queue_manager.queue_manager_exceptions import QueueEmptyException
 class QueueManager:
     def __init__(self, name):
         self.queue = deque()
@@ -21,6 +21,15 @@ class QueueManager:
         item = self.queue.popleft()
         print(f"Removed '{item}' from the queue.")
         return item
+    
+    def dequeue_item(self, item):
+        if not self.queue:
+            raise QueueEmptyException("Cannot dequeue from an empty queue!")
+        try:
+            self.queue.remove(item)
+            print(f"Removed '{item}' from the queue.")
+        except ValueError:
+            print("Item not found")
 
     def view(self):
         if not self.queue:
@@ -29,6 +38,7 @@ class QueueManager:
             print("Queue contents:")
             for idx, item in enumerate(self.queue, start=1):
                 print(f"{idx}. {item}")
+                
     def __str__(self):
         return f"QueueManager(name={self.name}, items={list(self.queue)})"
 
